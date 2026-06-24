@@ -82,7 +82,8 @@ LIMIT 5;
 ---
 
 ## 5. Database Visual Model
-<img width="951" height="662" alt="Screenshot 2026-06-24 102352" src="https://github.com/user-attachments/assets/1181062e-fc1e-4763-8993-0d1dc4bc9ae1" />
+<img width="951" height="662" alt="Screenshot 2026-06-24 102352" src="https://github.com/user-attachments/assets/ec777cfd-afe3-4430-a4e9-b6a5e72cc10d" />
+
 
 
 ---
