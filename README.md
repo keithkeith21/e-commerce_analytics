@@ -18,6 +18,11 @@ The raw Olist dataset from Kaggle presented several data quality and design issu
 * **Geographical Data Anomalies:** Critical cities like São Paulo were formatted inconsistently (e.g., `sao paulo` vs `são paulo`), leading to fragmented regional analysis.
 * **Duplicate Review Identifiers:** The `raw_reviews` table contained duplicated `review_id` keys with conflicting entries.
 * **Unmanaged Missing Data:** Critical fields contained strings like `'not_defined'` or blank values instead of true database flags.
+* **Outlier / Data Quality Issue:**
+The 3 not_defined records also had payment_value = 0.00.
+These records represent less than 0.01% of the dataset.
+The records were retained and flagged as data quality issues to preserve the original data.
+"610 product records contained missing values for product name length, description length, and photo quantity. These missing values were transformed to NULL during ETL to preserve the original records while maintaining numeric data types in the dimensional model."
 
 ---
 
