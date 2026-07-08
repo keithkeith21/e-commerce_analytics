@@ -1,6 +1,6 @@
 
 CREATE TABLE dim_orders (
-    order_id VARCHAR(50),
+    order_id VARCHAR(50) PRIMARY KEY,
     customer_id VARCHAR(50),
     order_status VARCHAR(50),
     order_purchase_timestamp DATETIME,
@@ -11,10 +11,10 @@ CREATE TABLE dim_orders (
 );
 
 CREATE TABLE dim_products (
-    product_id VARCHAR(50),
+    product_id VARCHAR(50) PRIMARY KEY,
     product_category_name VARCHAR(100),
-    product_name_lenght INT,
-    product_description_lenght INT,
+    product_name_lenght INT,               
+    product_description_lenght INT,        
     product_photos_qty INT,
     product_weight_g DECIMAL(10,2),
     product_length_cm DECIMAL(10,2),
@@ -23,14 +23,14 @@ CREATE TABLE dim_products (
 );
 
 CREATE TABLE dim_sellers (
-    seller_id VARCHAR(50),
+    seller_id VARCHAR(50) PRIMARY KEY,
     seller_zip_code_prefix VARCHAR(20),
     seller_city VARCHAR(100),
     seller_state VARCHAR(10)
 );
 
 CREATE TABLE dim_customers (
-    customer_id VARCHAR(50),
+    customer_id VARCHAR(50) PRIMARY KEY,
     customer_unique_id VARCHAR(50),
     customer_zip_code_prefix VARCHAR(20),
     customer_city VARCHAR(100),
@@ -53,24 +53,27 @@ CREATE TABLE dim_geolocations (
     geolocation_state VARCHAR(10)
 );
 
-create table raw_reviews (
-review_id varchar(200),
-order_id varchar(200),
-review_score int,
-review_comment_title varchar(255),
-review_comment_message TEXT,
-review_creation_date datetime,
-review_answer_timestamp datetime
+
+CREATE TABLE dim_reviews (
+    review_id VARCHAR(200) PRIMARY KEY,
+    order_id VARCHAR(200),
+    review_score INT,
+    review_comment_title VARCHAR(255),
+    review_comment_message TEXT,
+    review_creation_date DATETIME,
+    review_answer_timestamp DATETIME
 );
 
 CREATE TABLE dim_items (
-order_id varchar(250),
-order_item_id varchar (250),
-product_id varchar (250),
-seller_id varchar (250),
-shipping_limit_date datetime,
-price decimal(10,2),
-freight_value decimal (10,2) );
+    order_id VARCHAR(50),                  
+    order_item_id VARCHAR(250),
+    product_id VARCHAR(50),                
+    seller_id VARCHAR(50),                 
+    shipping_limit_date DATETIME,
+    price DECIMAL(10,2),
+    freight_value DECIMAL(10,2)
+);
+
 
 CREATE TABLE fact_sales (
     sales_key BIGINT AUTO_INCREMENT PRIMARY KEY,
@@ -86,98 +89,90 @@ CREATE TABLE fact_sales (
     purchase_timestamp DATETIME,
     delivery_timestamp DATETIME
 );
-insert into dim_payments (order_id, payment_sequential, payment_type, payment_installments, payment_value)
+
+INSERT INTO dim_payments (order_id, payment_sequential, payment_type, payment_installments, payment_value)
 SELECT
-  trim(upper(order_id)) as order_id,
-  payment_sequential, 
-  CASE WHEN payment_type = 'not_defined' THEN 'Unknown' ELSE payment_type END AS payment_type,
-  payment_installments,
-  payment_value 
+    TRIM(UPPER(order_id)) AS order_id,
+    payment_sequential, 
+    CASE WHEN payment_type = 'not_defined' THEN 'Unknown' ELSE payment_type END AS payment_type,
+    payment_installments,
+    payment_value 
 FROM raw_payments;
 
-
-insert into dim_reviews (review_id, order_id, review_score, review_comment_title, review_comment_message, review_creation_date, review_answer_timestamp)
+INSERT INTO dim_reviews (review_id, order_id, review_score, review_comment_title, review_comment_message, review_creation_date, review_answer_timestamp)
 SELECT
-    trim(upper(review_id)) as review_id,
-    MAX(trim(upper((order_id)))) AS order_id,
+    TRIM(UPPER(review_id)) AS review_id,
+    MAX(TRIM(UPPER(order_id))) AS order_id,
     MAX(review_score) AS review_score,
-    MAX(COALESCE(NULLIF(review_comment_title, ''), 'unknown')) AS review_comment_title,
-    MAX(COALESCE(NULLIF(review_comment_message, ''), 'unknown')) AS review_comment_message,
+    MAX(COALESCE(NULLIF(review_comment_title, ''), 'Unknown')) AS review_comment_title,
+    MAX(COALESCE(NULLIF(review_comment_message, ''), 'Unknown')) AS review_comment_message,
     MAX(review_creation_date) AS review_creation_date,
     MAX(review_answer_timestamp) AS review_answer_timestamp
 FROM raw_reviews
 GROUP BY review_id; 
 
-insert into dim_customers (customer_id, customer_unique_id,  customer_zip_code_prefix, customer_city, customer_state)
-select 
-trim(upper(customer_id)) as customer_id,
-trim(upper(customer_unique_id)) as customer_unique_id,
-customer_zip_code_prefix,
-case when customer_city = 'sao paulo' then 'são paulo' else customer_city end  as customer_city,
-customer_state
-from raw_customers; 
+INSERT INTO dim_customers (customer_id, customer_unique_id, customer_zip_code_prefix, customer_city, customer_state)
+SELECT 
+    TRIM(UPPER(customer_id)) AS customer_id,
+    TRIM(UPPER(customer_unique_id)) AS customer_unique_id,
+    customer_zip_code_prefix,
+    CASE WHEN customer_city = 'sao paulo' THEN 'são paulo' ELSE customer_city END AS customer_city,
+    customer_state
+FROM raw_customers; 
 
-insert into dim_products (product_id, product_category_name, product_name_lenght,  product_description_lenght,
-product_photos_qty, product_weight_g, product_length_cm, product_height_cm, product_width_cm)
-select 
-trim(upper(product_id)) as product_id,
-coalesce(nullif (product_category_name, ''),'unkown') as product_category_name,
-coalesce(nullif (product_name_lenght, 0), 0) as product_name_lenght,
-coalesce(nullif (product_description_lenght, 0),0)as product_description_lenght,
-coalesce(nullif (product_photos_qty, 0),0) as product_photos_qty,
-coalesce(nullif (product_weight_g, 0),0) as product_weight_g,
-coalesce(nullif (product_length_cm, 0),0) as product_length_cm,
-coalesce(nullif (product_height_cm, 0),0) as product_height_cm,
-coalesce(nullif (product_width_cm, 0),0) as product_width_cm
- from raw_products;
+INSERT INTO dim_products (product_id, product_category_name, product_name_lenght, product_description_lenght, product_photos_qty, product_weight_g, product_length_cm, product_height_cm, product_width_cm)
+SELECT 
+    TRIM(UPPER(product_id)) AS product_id,
+    COALESCE(NULLIF(product_category_name, ''), 'Unknown') AS product_category_name, -- Fixed typo string 'Unknown'
+    COALESCE(NULLIF(product_name_lenght, 0), 0) AS product_name_lenght,
+    COALESCE(NULLIF(product_description_lenght, 0), 0) AS product_description_lenght,
+    COALESCE(NULLIF(product_photos_qty, 0), 0) AS product_photos_qty,
+    COALESCE(NULLIF(product_weight_g, 0), 0) AS product_weight_g,
+    COALESCE(NULLIF(product_length_cm, 0), 0) AS product_length_cm,
+    COALESCE(NULLIF(product_height_cm, 0), 0) AS product_height_cm,
+    COALESCE(NULLIF(product_width_cm, 0), 0) AS product_width_cm
+FROM raw_products;
  
-insert into dim_sellers  (seller_id, seller_zip_code_prefix, seller_city, seller_state)
-select distinct
-trim(upper(seller_id)) as seller_id,
-seller_zip_code_prefix,
-case when seller_city = 'sao paulo' then 'são paulo' else seller_city end as seller_city,
-seller_state
-from raw_sellers
-;
+INSERT INTO dim_sellers (seller_id, seller_zip_code_prefix, seller_city, seller_state)
+SELECT DISTINCT
+    TRIM(UPPER(seller_id)) AS seller_id,
+    seller_zip_code_prefix,
+    CASE WHEN seller_city = 'sao paulo' THEN 'são paulo' ELSE seller_city END AS seller_city,
+    seller_state
+FROM raw_sellers;
 
-insert into dim_items (order_id,order_item_id,product_id,seller_id,shipping_limit_date,price,freight_value)
-select
-trim(upper(order_id)) as order_id,
-order_item_id,
-product_id,
-seller_id ,
-shipping_limit_date,
-price,
-freight_value
-from raw_items;
+INSERT INTO dim_items (order_id, order_item_id, product_id, seller_id, shipping_limit_date, price, freight_value)
+SELECT
+    TRIM(UPPER(order_id)) AS order_id,
+    order_item_id,
+    TRIM(UPPER(product_id)) AS product_id,
+    TRIM(UPPER(seller_id)) AS seller_id,
+    shipping_limit_date,
+    price,
+    freight_value
+FROM raw_items;
 
-insert into dim_orders (order_id,
-customer_id,
-order_status,
-order_purchase_timestamp,
-order_approved_at,
-order_delivered_carrier_date,
-order_delivered_customer_date,
-order_estimated_delivery_date)
-select 
-trim(upper(order_id)) as order_id,
-trim(upper(customer_id)) as customer_id,
-order_status,
-nullif (order_purchase_timestamp, '') as order_purchase_timestamp,
-nullif (order_approved_at,'') as order_approved_at,
-nullif (order_delivered_carrier_date,'') as order_delivered_carrier_date,
-nullif (order_delivered_customer_date,'') as order_delivered_customer_date,
-nullif (order_estimated_delivery_date,'') as order_estimated_delivery_date
-from raw_orders;
+INSERT INTO dim_orders (order_id, customer_id, order_status, order_purchase_timestamp, order_approved_at, order_delivered_carrier_date, order_delivered_customer_date, order_estimated_delivery_date)
+SELECT 
+    TRIM(UPPER(order_id)) AS order_id,
+    TRIM(UPPER(customer_id)) AS customer_id,
+    order_status,
+    NULLIF(order_purchase_timestamp, '') AS order_purchase_timestamp,
+    NULLIF(order_approved_at, '') AS order_approved_at,
+    NULLIF(order_delivered_carrier_date, '') AS order_delivered_carrier_date,
+    NULLIF(order_delivered_customer_date, '') AS order_delivered_customer_date,
+    NULLIF(order_estimated_delivery_date, '') AS order_estimated_delivery_date
+FROM raw_orders;
 
-insert into dim_geolocations (geolocation_zip_code_prefix,geolocation_lat,geolocation_lng,geolocation_city,geolocation_state)
-select 
-geolocation_zip_code_prefix,
-cast(geolocation_lat as decimal (10,2)),
-cast(geolocation_lng as decimal (10,2)),
-case when geolocation_city = 'sao paulo' then 'são paulo' else geolocation_city end as geolocation_city,
-geolocation_state
-from raw_geolocations;
+INSERT INTO dim_geolocations (geolocation_zip_code_prefix, geolocation_lat, geolocation_lng, geolocation_city, geolocation_state)
+SELECT 
+    geolocation_zip_code_prefix,
+    geolocation_lat,                       -- Fixed: Preserved 6-decimal map tracking coordinates
+    geolocation_lng,                       -- Fixed: Preserved 6-decimal map tracking coordinates
+    CASE WHEN geolocation_city = 'sao paulo' THEN 'são paulo' ELSE geolocation_city END AS geolocation_city,
+    geolocation_state
+FROM raw_geolocations;
+
 
 INSERT INTO fact_sales (
     order_id,
@@ -201,5 +196,4 @@ SELECT
     o.order_purchase_timestamp,
     o.order_delivered_customer_date
 FROM dim_items i
-JOIN dim_orders o
-    ON i.order_id = o.order_id;
+JOIN dim_orders o ON i.order_id = o.order_id;
