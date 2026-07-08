@@ -63,7 +63,7 @@ review_creation_date datetime,
 review_answer_timestamp datetime
 );
 
-create table dim_items (
+CREATE TABLE dim_items (
 order_id varchar(250),
 order_item_id varchar (250),
 product_id varchar (250),
@@ -78,7 +78,7 @@ CREATE TABLE fact_sales (
     customer_id VARCHAR(50),
     product_id VARCHAR(50),
     seller_id VARCHAR(50),
-    order_item_id INT,
+    order_item_id VARCHAR(250),
     price DECIMAL(10,2),
     freight_value DECIMAL(10,2),
     payment_value DECIMAL(10,2),
