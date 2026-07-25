@@ -123,7 +123,7 @@ FROM raw_customers;
 INSERT INTO dim_products (product_id, product_category_name, product_name_lenght, product_description_lenght, product_photos_qty, product_weight_g, product_length_cm, product_height_cm, product_width_cm)
 SELECT 
     TRIM(UPPER(product_id)) AS product_id,
-    COALESCE(NULLIF(product_category_name, ''), 'Unknown') AS product_category_name, -- Fixed typo string 'Unknown'
+    COALESCE(NULLIF(product_category_name, ''), 'Unknown') AS product_category_name, 
     COALESCE(NULLIF(product_name_lenght, 0), 0) AS product_name_lenght,
     COALESCE(NULLIF(product_description_lenght, 0), 0) AS product_description_lenght,
     COALESCE(NULLIF(product_photos_qty, 0), 0) AS product_photos_qty,
@@ -167,8 +167,8 @@ FROM raw_orders;
 INSERT INTO dim_geolocations (geolocation_zip_code_prefix, geolocation_lat, geolocation_lng, geolocation_city, geolocation_state)
 SELECT 
     geolocation_zip_code_prefix,
-    geolocation_lat,                       -- Fixed: Preserved 6-decimal map tracking coordinates
-    geolocation_lng,                       -- Fixed: Preserved 6-decimal map tracking coordinates
+    geolocation_lat,                     
+    geolocation_lng,                      
     CASE WHEN geolocation_city = 'sao paulo' THEN 'são paulo' ELSE geolocation_city END AS geolocation_city,
     geolocation_state
 FROM raw_geolocations;
